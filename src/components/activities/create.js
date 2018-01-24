@@ -5,6 +5,7 @@ import GridList from 'material-ui/GridList';
 import uuid from 'uuid';
 import ismobile from 'ismobilejs';
 import Tile from './tile';
+import actions from 'api/actions';
 
 const styles = theme => ({
   root: {
@@ -23,6 +24,10 @@ const styles = theme => ({
 });
 
 class Create extends React.Component {
+
+  componentDidMount() {
+    this.props.load();
+  }
 
   render() {
     const { kinds, classes } = this.props;
@@ -53,4 +58,14 @@ const mapStateToProps = state => ({
   kinds: state.get('kinds'),
 });
 
-export default connect(mapStateToProps)(withStyles(styles)(Create));
+const mapDispatchToProps = dispatch => {
+  return {
+    load: () => {
+      dispatch({
+        type: actions.FETCH_KINDS
+      });
+    }
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(withStyles(styles)(Create));
