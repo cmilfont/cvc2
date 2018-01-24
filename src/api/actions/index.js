@@ -31,4 +31,4 @@ const actions = {
   FETCH_KINDS_SUCCESSFUL: `${NAMESPACE_MUI}FETCH_KINDS_SUCCESSFUL`,
 };
 
-export default actions;
+export { actions as default };

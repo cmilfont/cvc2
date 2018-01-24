@@ -11,14 +11,16 @@ function createSocketChannel(firebase) {
   })
 }
 
-export default function* watchLogged(firebase) {
+export default function* watchLoginUser(firebase) {
   const socketChannel = yield call(createSocketChannel, firebase);
-  while(true) {
+  while (true) {
     const payload = yield take(socketChannel);
     if (payload.email) {
       yield put({ type: actions.LOGIN_USER_SUCCESSFUL, payload });
+      yield put(push('/'));
     } else {
       yield put(push('/login'));
     }
+    
   }
 }

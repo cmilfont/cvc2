@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
 import { Provider } from 'react-redux';
-import { createStore, applyMiddleware, combineReducers } from 'redux';
+import { createStore, applyMiddleware } from 'redux';
 import createSagaMiddleware from 'redux-saga';
 import { composeWithDevTools } from 'redux-devtools-extension';
 import { ConnectedRouter, routerMiddleware } from 'react-router-redux';
-// import { combineReducers } from 'redux-immutable';
+import { combineReducers } from 'redux-immutable';
 import createHistory from 'history/createBrowserHistory';
 import { Switch } from 'react-router';
 import { Route } from 'react-router-dom';
@@ -14,15 +14,17 @@ import blue from 'material-ui/colors/blue';
 import blueGrey from 'material-ui/colors/blueGrey';
 
 import {
+  //LoginFormContainer as LoginForm,
   Theme, 
 } from 'react-dashboard-mui/Components';
+
+import LoginForm from 'components/login';
 
 import reducers from 'api/reducers';
 import sagas from 'api/sagas';
 import firebase from 'api/firebase';
-// import graphqlClient from 'api/graphql/client';
+import graphqlClient from 'api/graphql/client';
 
-import LoginForm from 'components/login';
 import Logged from 'components/logged';
 
 const theme = createMuiTheme({
@@ -51,7 +53,7 @@ class App extends Component {
     const composeEnhancers = composeWithDevTools({});
     const composed = composeEnhancers(applyMiddleware(...middlewares));
     this.store = createStore(combinedReducers, composed);
-    sagaMiddleware.run(sagas, firebase);
+    sagaMiddleware.run(sagas, firebase, graphqlClient);
   }
 
   render() {

@@ -8,8 +8,8 @@ import {
   Main,
 } from 'react-dashboard-mui/Components';
 import Toolbar from 'components/toolbar';
-// import CreateActivity from 'components/activities/create';
-// import Activities from 'components/activities/list';
+import CreateActivity from 'components/activities/create';
+import Activities from 'components/activities/list';
 
 class Logged extends React.Component {
 
@@ -26,9 +26,9 @@ class Logged extends React.Component {
         </FixedAppbar>
         <Main>
           <Switch>
-            <Route key="new-cmp" path="/new" component={() => (<div>New</div>)} />
+            <Route key="new-cmp" path="/new" component={CreateActivity} />
             <Route key="chart-cmp" path="/charts" component={() => (<div>Charts</div>)} />
-            <Route key="list-cmp" path="/" component={() => (<div>Lista</div>)} />
+            <Route key="list-cmp" path="/" component={Activities} />
           </Switch>
         </Main>
       </Dashboard>
@@ -36,6 +36,6 @@ class Logged extends React.Component {
   }
 };
 
-const mapStateToProps = state => ({ user: state.user });
+const mapStateToProps = state => ({ user: state.get('user') });
 
 export default withRouter(connect(mapStateToProps)(Logged));

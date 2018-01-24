@@ -1,12 +1,14 @@
 import React from 'react';
-import { connect } from 'react-redux';
+import { connect } from 'react-redux'
 import { withStyles } from 'material-ui/styles';
 import ExpansionPanel, {
   ExpansionPanelDetails,
   ExpansionPanelSummary,
   ExpansionPanelActions,
 } from 'material-ui/ExpansionPanel';
+import { TimePicker } from 'material-ui-pickers'
 import Typography from 'material-ui/Typography';
+import Input from 'material-ui/Input';
 import ExpandMoreIcon from 'material-ui-icons/ExpandMore';
 import Button from 'material-ui/Button';
 import Divider from 'material-ui/Divider';
@@ -78,62 +80,59 @@ class Activity extends React.Component {
     return description && description.replace(this.pattern, this.replaceStringToURL);
   }
 
-  remove = () => {
-    const { id } = this.props;
-    this.props.removeActivity({id});
+  handleTimeChange = (date) => {
+    this.props.onChange({loggedAt: date.format()});
   }
 
-  edit = () => {
-    const {
-      id,
-      description,
-      loggedAt,
-    } = this.props;
-    this.props.editActivity({id, description, loggedAt});
+  handleDescriptionChange = (event) => {
+    const description = event.target.value;
+    this.props.onChange({description});
+  }
+
+  save = () => {
+    const { id, description, loggedAt } = this.props.activityForm;
+    this.props.saveEditActivity({ id, description, loggedAt });
   }
 
   textShortenerWhenMobile = (text, length) => (
-    ismobile.phone && text && text.length > length
+    ismobile.phone && text.length > length
     ? `${text.substring(0, length)}...`
     : text
   );
 
   render() {
     const {
+      activityForm: { description, loggedAt },
       kind,
-      description,
-      loggedAt,
       classes,
     } = this.props;
     const shortDescription = this.textShortenerWhenMobile(description, 20);
     const formattedDescription = this.transformLink(description);
     return (
-      <ExpansionPanel>
+      <ExpansionPanel expanded>
         <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
           <div className={classes.column}>
-            <div
-              className={classes.bar}
-              style={{
-                backgroundColor: kind.color
-              }}
-            />
-            <Typography className={classes.heading}>
-              {moment(loggedAt).format('LT')}
-            </Typography>
+            <div className={classes.bar} style={{backgroundColor: kind.color}} />
+              <TimePicker
+                value={loggedAt}
+                onChange={this.handleTimeChange}
+              />
           </div>
           <div className={classes.column}>
-            <Typography className={classes.secondaryHeading}>{shortDescription}</Typography>
+            <Typography className={classes.secondaryHeading}>
+              {shortDescription}
+            </Typography>
           </div>
         </ExpansionPanelSummary>
         <ExpansionPanelDetails className={classes.details}>
           <Typography type="title" className={classes.kind}>
             {kind.description}
           </Typography>
-          <Typography type="caption">
-            <div
-              dangerouslySetInnerHTML={{__html: formattedDescription}}
-            />
-          </Typography>
+          <Input
+            type="caption"
+            value={formattedDescription}
+            onChange={this.handleDescriptionChange}
+          />
         </ExpansionPanelDetails>
         <Divider />
         <ExpansionPanelActions>
@@ -142,17 +141,17 @@ class Activity extends React.Component {
             dense
             color="accent"
             className={classes.button}
-            onClick={this.remove}
+            onClick={this.props.cancelEditActivity}
           >
-            REMOVE
+            CANCEL
           </Button>
           <Button
             raised
             dense
             color="accent"
-            onClick={this.edit}
+            onClick={this.save}
           >
-            EDIT
+            SAVE
           </Button>
         </ExpansionPanelActions>
       </ExpansionPanel>
@@ -160,15 +159,29 @@ class Activity extends React.Component {
   }
 }
 
+const mapStateToProps = state => ({
+  activityForm: state.get('activity'),
+});
+
 const mapDispatchToProps = dispatch => ({
-  editActivity: payload => dispatch({
-    type: actions.START_EDIT_ACTIVITY,
+  saveEditActivity: payload => {
+    dispatch({
+      type: actions.SAVE_EDIT_ACTIVITY,
+      payload,
+    })
+    dispatch({
+      type: actions.UPDATE_ACTIVITY,
+      payload,
+    })
+  },
+  cancelEditActivity: payload => dispatch({
+    type: actions.CANCEL_EDIT_ACTIVITY,
     payload,
   }),
-  removeActivity: payload => dispatch({
-    type: actions.REMOVE_ACTIVITY,
+  onChange: payload => dispatch({
+    type: actions.UPDATED_ACTIVITY_FORM,
     payload,
   }),
 });
 
-export default withStyles(styles)(connect(null, mapDispatchToProps)(Activity));
+export default withStyles(styles)(connect(mapStateToProps, mapDispatchToProps)(Activity));

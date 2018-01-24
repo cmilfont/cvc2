@@ -1,19 +1,8 @@
-import React from 'react';
-import Activity from './activity';
+import { connect } from 'react-redux';
+import List from 'components/activities/list';
 
-class Activities extends React.Component {
+const mapStateToProps = state => ({
+  activities: state.get('activities'),
+});
 
-  render() {
-    const { onRemove } = this.props;
-    const list = this.props.activities.map(activity => (
-      <Activity
-        key={`activity-${activity.id}`}
-        activity={activity}
-      />
-    ));
-
-    return list;
-  }
-}
-
-export default Activities;
+export default connect(mapStateToProps)(List);
