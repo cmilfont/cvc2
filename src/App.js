@@ -1,101 +1,71 @@
-import React from 'react';
-import moment from 'moment';
-import uuid from 'uuid';
-import PropTypes from 'prop-types';
-import Activities from './components/activities';
+import React, { Component } from 'react';
+import { Provider } from 'react-redux';
+import { createStore, applyMiddleware, combineReducers } from 'redux';
+import createSagaMiddleware from 'redux-saga';
+import { composeWithDevTools } from 'redux-devtools-extension';
+import { ConnectedRouter, routerMiddleware } from 'react-router-redux';
+// import { combineReducers } from 'redux-immutable';
+import createHistory from 'history/createBrowserHistory';
+import { Switch } from 'react-router';
+import { Route } from 'react-router-dom';
 
-const activities = [
-  {
-    id: uuid(),
-    kind: 'DRINK',
-    color: '#D6D1B1',
-    description: 'water',
-    loggedAt: moment().subtract(5, 'hours').format('LT'),
+import { createMuiTheme } from 'material-ui/styles';
+import blue from 'material-ui/colors/blue';
+import blueGrey from 'material-ui/colors/blueGrey';
+
+import {
+  Theme, 
+} from 'react-dashboard-mui/Components';
+
+import reducers from 'api/reducers';
+import sagas from 'api/sagas';
+import firebase from 'api/firebase';
+// import graphqlClient from 'api/graphql/client';
+
+import LoginForm from 'components/login';
+import Logged from 'components/logged';
+
+const theme = createMuiTheme({
+  palette: {
+    primary: blueGrey,
+    secondary: blue,
   },
-  {
-    id: uuid(),
-    kind: 'DRINK',
-    color: '#D6D1B1',
-    description: 'coffee',
-    loggedAt: moment().subtract(4, 'hours').format('LT'),
+  overrides: {
+    MuiAppBar: {
+      // colorPrimary: {
+        //backgroundColor: blueGrey['A200'],
+      // },
+    },
   },
-  {
-    id: uuid(),
-    kind: 'EAT',
-    color: '#F0B67F',
-    description: 'porkbelly pizza',
-    loggedAt: moment().subtract(3, 'hours').format('LT'),
-  },
-  {
-    id: uuid(),
-    kind: 'DRINK',
-    color: '#D6D1B1',
-    description: 'coffee',
-    loggedAt: moment().subtract(3, 'hours').format('LT'),
-  },
-  {
-    id: uuid(),
-    kind: 'WORKOUT',
-    color: '#C7EFCF',
-    description: 'hiit',
-    loggedAt: moment().subtract(2, 'hours').format('LT'),
-  },
-  {
-    id: uuid(),
-    kind: 'READ',
-    color: '#261C15',
-    description: 'medium radar frontend https://medium.com/@milfont/radar-front-end-2018-51a185f4eb41',
-    loggedAt: moment().subtract(1, 'hours').format('LT'),
-  },
-];
+});
 
-class App extends React.Component {
-
-  static childContextTypes = {
-    dispatch: PropTypes.func,
-  }
-
-  state = { activities: [] };
-
-  getChildContext() {
-    return {
-      dispatch: this.dispatch
-    }
-  }
-
-  dispatch = (action) => {
-    debugger;
-    switch (action.type) {
-      case 'REMOVE':
-        this.remove(action.payload);
-        break;
-      default:
-        break;
-    }
-  }
-
-  remove = (event) => {
-    debugger;
-    const id = event.target.dataset["id"];
-    const newList = this.state.activities.filter(activity => activity.id !== id);
-    this.setState({ activities: newList });
-  }
-
-  componentDidMount() {
-    // fetch('/activities').then(result => result.json()).then(activities => {
-    //   this.setState({ activities });
-    // })
-    this.setState({ activities });
+class App extends Component {
+  componentWillMount() {
+    this.history = createHistory();
+    const sagaMiddleware = createSagaMiddleware();
+    const middlewares = [
+      routerMiddleware(this.history),
+      sagaMiddleware,
+    ];
+    const combinedReducers = combineReducers(reducers);
+    const composeEnhancers = composeWithDevTools({});
+    const composed = composeEnhancers(applyMiddleware(...middlewares));
+    this.store = createStore(combinedReducers, composed);
+    sagaMiddleware.run(sagas, firebase);
   }
 
   render() {
     return (
-      <div className="App">
-        <header className="App-header">
-          <h1 className="App-title">Activities</h1>
-        </header>
-        <Activities activities={this.state.activities} />
-      </div>
+      <Provider store={this.store}>
+        <ConnectedRouter history={this.history}>
+          <Theme customTheme={theme}>
+            <Switch>
+              <Route key="login-cmp" path="/login" component={LoginForm} />
+              <Route key="main-cmp" path="/" component={Logged} />
+            </Switch>
+          </Theme>
+        </ConnectedRouter>
+      </Provider>
     );
   }
 }
